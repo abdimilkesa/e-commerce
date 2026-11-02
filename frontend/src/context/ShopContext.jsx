@@ -5,10 +5,10 @@ export const ShopContext = createContext();
 
 const ShopContextProvider = ({ children }) => {
   const [products, setProducts] = useState(product);
-
+  const currency ="$"
   const value = {
     products,
-    setProducts,
+    currency
   };
 
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>;
