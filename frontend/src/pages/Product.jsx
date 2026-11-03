@@ -6,25 +6,40 @@ import RelatedProduct from "../components/RelatedProduct";
 
 const Product = () => {
   const { productId } = useParams();
-  const { products, currency } = useContext(ShopContext);
+
+  // Get products, currency and addToCart from ShopContext
+  const { products, currency, addToCart } = useContext(ShopContext);
 
   const [productsData, setProductsData] = useState(null);
   const [image, setImage] = useState("");
   const [size, setSize] = useState("");
 
-  const fetchproductData = async () => {
-    const product = products.find((item) => item._id === productId);
-
-    if (product) {
-      setProductsData(product);
-      setImage(product.image[0]);
-    }
-  };
-
+  // Find selected product
   useEffect(() => {
-    fetchproductData();
+    const fetchProductData = () => {
+      const product = products.find((item) => item._id === productId);
+
+      if (product) {
+        setProductsData(product);
+        setImage(product.image[0]);
+        setSize("");
+      } else {
+        setProductsData(null);
+      }
+    };
+
+    fetchProductData();
     window.scrollTo(0, 0);
   }, [productId, products]);
+
+  // Add selected product to cart
+  const handleAddToCart = () => {
+    if (!size) {
+      return;
+    }
+
+    addToCart(productsData._id, size);
+  };
 
   return productsData ? (
     <div className="bg-white px-4 pb-20 pt-28 text-slate-900 sm:px-8 lg:px-16">
@@ -37,6 +52,7 @@ const Product = () => {
             {productsData.image.map((item, index) => (
               <button
                 key={index}
+                type="button"
                 onClick={() => setImage(item)}
                 className={`h-20 w-20 shrink-0 overflow-hidden rounded-md border-2 bg-gray-50 transition ${
                   image === item
@@ -129,10 +145,11 @@ const Product = () => {
             </div>
           </div>
 
-          {/* Add to Bag */}
+          {/* Add to Bag Button */}
           <button
             type="button"
             disabled={!size}
+            onClick={handleAddToCart}
             className="mb-9 w-full rounded-xl bg-slate-950 px-6 py-4 text-xs font-bold uppercase tracking-[0.2em] text-white transition duration-300 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {!size ? "Select a Size" : "Add to Bag"}
@@ -190,7 +207,7 @@ const Product = () => {
           </p>
         </div>
 
-        {/* Highlights */}
+        {/* Product Highlights */}
         <div className="mt-10">
           <h2 className="mb-5 text-xl font-bold text-slate-950">
             Product Highlights
@@ -211,6 +228,8 @@ const Product = () => {
             ))}
           </ul>
         </div>
+
+        {/* Related Products */}
         <div>
           <RelatedProduct category={productsData.category} />
         </div>

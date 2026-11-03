@@ -1,11 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { FaRegCompass } from "react-icons/fa";
 import { BiCart, BiChevronDown, BiUser } from "react-icons/bi";
+import { ShopContext } from "../context/ShopContext";
+// import { useContext } from "react";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+
+  const {getCartCount, setCartItems} = useContext(ShopContext)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -128,6 +132,9 @@ const Navbar = () => {
               className="text-gray-700 hover:text-orange-500"
             >
               <BiCart className="text-xl" />
+              {getCartCount()>0 && (
+                <span className="absolute top-1 right-1">{getCartCount()}</span>
+              )}
             </Link>
           </div>
         </nav>
