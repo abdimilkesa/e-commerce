@@ -1,9 +1,12 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const router = express.Router();
 
 const Order = require("../models/Order");
 const Product = require("../models/Product");
+
 const authMiddleware = require("../middleware/authMiddleware");
+const { adminMiddleware } = require("../middleware/authMiddleware");
 
 const SHIPPING_FEE = 10;
 
@@ -12,7 +15,6 @@ router.post("/create", authMiddleware, async (req, res) => {
   try {
     const { customer, shippingAddress, items, paymentMethod } = req.body;
 
-    // Validate checkout information
     if (
       !customer?.name ||
       !customer?.email ||
@@ -33,7 +35,6 @@ router.post("/create", authMiddleware, async (req, res) => {
     let subtotal = 0;
     const orderItems = [];
 
-    // Verify products and calculate prices
     for (const item of items) {
       if (
         !item.productId ||
@@ -84,11 +85,9 @@ router.post("/create", authMiddleware, async (req, res) => {
       });
     }
 
-    // Calculate final amount on the backend
     const shippingFee = SHIPPING_FEE;
     const totalAmount = subtotal + shippingFee;
 
-    // Save order with authenticated user's ID
     const order = await Order.create({
       user: req.user._id,
       customer,
@@ -138,5 +137,111 @@ router.get("/my-orders", authMiddleware, async (req, res) => {
     });
   }
 });
+
+// ADMIN: GET ALL CUSTOMER ORDERS
+router.get("/admin/all", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const search = req.query.search?.trim();
+
+    const filter = {};
+
+    if (search) {
+      const safeSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+      const searchConditions = [
+        { "customer.name": { $regex: safeSearch, $options: "i" } },
+        { "customer.email": { $regex: safeSearch, $options: "i" } },
+      ];
+
+      if (mongoose.isValidObjectId(search)) {
+        searchConditions.push({ _id: search });
+      }
+
+      filter.$or = searchConditions;
+    }
+
+    const orders = await Order.find(filter).sort({ createdAt: -1 }).limit(100);
+
+    const totalOrders = await Order.countDocuments(filter);
+
+    return res.status(200).json({
+      success: true,
+      count: orders.length,
+      totalOrders,
+      orders,
+    });
+  } catch (error) {
+    console.error("Admin fetching orders error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to retrieve customer orders.",
+    });
+  }
+});
+
+// ADMIN: UPDATE ORDER STATUS
+router.patch(
+  "/admin/:orderId/status",
+  authMiddleware,
+  adminMiddleware,
+  async (req, res) => {
+    try {
+      const { orderId } = req.params;
+      const { orderStatus } = req.body;
+
+      const allowedStatuses = [
+        "pending",
+        "processing",
+        "shipped",
+        "delivered",
+        "cancelled",
+      ];
+
+      if (!mongoose.isValidObjectId(orderId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid order ID.",
+        });
+      }
+
+      if (!allowedStatuses.includes(orderStatus)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid order status.",
+        });
+      }
+
+      const order = await Order.findByIdAndUpdate(
+        orderId,
+        { orderStatus },
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+
+      if (!order) {
+        return res.status(404).json({
+          success: false,
+          message: "Order not found.",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "Order status updated successfully.",
+        order,
+      });
+    } catch (error) {
+      console.error("Order status update error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Unable to update order status.",
+      });
+    }
+  }
+);
 
 module.exports = router;

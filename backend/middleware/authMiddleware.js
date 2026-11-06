@@ -21,19 +21,40 @@ const authMiddleware = async (req, res, next) => {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "User account not found.",
+        message: "User not found. Please log in again.",
       });
     }
 
-    req.user = user;
+    // Attach authenticated user information
+    req.user = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    };
 
     next();
   } catch (error) {
+    console.error("Authentication error:", error.message);
+
     return res.status(401).json({
       success: false,
-      message: "Invalid or expired authentication token.",
+      message: "Invalid or expired token. Please log in again.",
     });
   }
 };
 
+// Allow only administrators
+const adminMiddleware = (req, res, next) => {
+  if (!req.user || req.user.role !== "admin") {
+    return res.status(403).json({
+      success: false,
+      message: "Access denied. Admin privileges required.",
+    });
+  }
+
+  next();
+};
+
 module.exports = authMiddleware;
+module.exports.adminMiddleware = adminMiddleware;

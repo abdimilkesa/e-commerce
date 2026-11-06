@@ -4,12 +4,19 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
 // Generate JWT token
-const generateToken = (userId) => {
+const generateToken = (user) => {
   if (!process.env.JWT_SECRET) {
     throw new Error("JWT_SECRET is not configured.");
   }
 
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "1d" });
+  return jwt.sign(
+    {
+      id: user._id,
+      role: user.role,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "1d" }
+  );
 };
 
 // REGISTER
@@ -44,13 +51,14 @@ router.post("/register", async (req, res) => {
       });
     }
 
+    // Public registration always creates a customer
     const user = await User.create({
       name: name.trim(),
       email: normalizedEmail,
       password,
     });
 
-    const token = generateToken(user._id);
+    const token = generateToken(user);
 
     return res.status(201).json({
       success: true,
@@ -60,6 +68,7 @@ router.post("/register", async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        role: user.role,
       },
     });
   } catch (error) {
@@ -95,7 +104,7 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    const token = generateToken(user._id);
+    const token = generateToken(user);
 
     return res.status(200).json({
       success: true,
@@ -105,6 +114,7 @@ router.post("/login", async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        role: user.role,
       },
     });
   } catch (error) {
