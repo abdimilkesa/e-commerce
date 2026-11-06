@@ -13,6 +13,11 @@ const ShopContextProvider = ({ children }) => {
 
   const [cartItems, setCartItems] = useState({});
 
+  // Clear the entire cart
+  const clearCart = () => {
+    setCartItems({});
+  };
+
   // Fetch products from MongoDB through Express API
   useEffect(() => {
     const fetchProducts = async () => {
@@ -145,6 +150,7 @@ const ShopContextProvider = ({ children }) => {
     getCartCount,
     updateQuantity,
     getCartAmount,
+    clearCart,
   };
 
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>;

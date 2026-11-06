@@ -2,6 +2,13 @@ const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema(
   {
+    // Link order to registered customer
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
     customer: {
       name: { type: String, required: true },
       email: { type: String, required: true },
@@ -32,7 +39,16 @@ const orderSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    subtotal: {
+      type: Number,
+      required: true,
+    },
 
+    shippingFee: {
+      type: Number,
+      required: true,
+      default: 10,
+    },
     paymentMethod: {
       type: String,
       enum: ["chapa", "telebirr", "bank"],

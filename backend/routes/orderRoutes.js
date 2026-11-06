@@ -3,13 +3,16 @@ const router = express.Router();
 
 const Order = require("../models/Order");
 const Product = require("../models/Product");
+const authMiddleware = require("../middleware/authMiddleware");
 
-// Create a new order
-router.post("/create", async (req, res) => {
+const SHIPPING_FEE = 10;
+
+// CREATE A NEW ORDER (LOGIN REQUIRED)
+router.post("/create", authMiddleware, async (req, res) => {
   try {
     const { customer, shippingAddress, items, paymentMethod } = req.body;
 
-    // Validate required information
+    // Validate checkout information
     if (
       !customer?.name ||
       !customer?.email ||
@@ -27,10 +30,10 @@ router.post("/create", async (req, res) => {
       });
     }
 
-    let totalAmount = 0;
+    let subtotal = 0;
     const orderItems = [];
 
-    // Verify products and calculate prices using MongoDB
+    // Verify products and calculate prices
     for (const item of items) {
       if (
         !item.productId ||
@@ -70,7 +73,7 @@ router.post("/create", async (req, res) => {
         });
       }
 
-      totalAmount += product.price * item.quantity;
+      subtotal += product.price * item.quantity;
 
       orderItems.push({
         productId: product._id,
@@ -81,11 +84,18 @@ router.post("/create", async (req, res) => {
       });
     }
 
-    // Save the order
+    // Calculate final amount on the backend
+    const shippingFee = SHIPPING_FEE;
+    const totalAmount = subtotal + shippingFee;
+
+    // Save order with authenticated user's ID
     const order = await Order.create({
+      user: req.user._id,
       customer,
       shippingAddress,
       items: orderItems,
+      subtotal,
+      shippingFee,
       totalAmount,
       paymentMethod,
       paymentStatus: "pending",
@@ -103,6 +113,28 @@ router.post("/create", async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Unable to create order.",
+    });
+  }
+});
+
+// GET LOGGED-IN CUSTOMER'S ORDERS
+router.get("/my-orders", authMiddleware, async (req, res) => {
+  try {
+    const orders = await Order.find({
+      user: req.user._id,
+    }).sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      count: orders.length,
+      orders,
+    });
+  } catch (error) {
+    console.error("Fetching orders error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to retrieve your orders.",
     });
   }
 });

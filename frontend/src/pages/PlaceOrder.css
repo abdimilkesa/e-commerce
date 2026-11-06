@@ -1,0 +1,44 @@
+/* Country selector */
+.phone-input-custom .PhoneInputCountry {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-right: 10px;
+    color: #000000;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Country flag */
+.phone-input-custom .PhoneInputCountryIcon {
+    width: 18px;
+    height: 13px;
+    border-radius: 2px;
+}
+
+/* Country dropdown */
+.phone-input-custom .PhoneInputCountrySelect {
+    color: #000000;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+/* Dropdown arrow */
+.phone-input-custom .PhoneInputCountrySelectArrow {
+    width: 5px;
+    height: 5px;
+    border-color: #000000;
+    opacity: 0.8;
+}
+
+/* Phone number */
+.phone-input-custom .PhoneInputInput {
+    font-size: 13px;
+    color: #000000;
+}
+
+/* Dropdown options */
+.phone-input-custom select {
+    color: #000000;
+    font-size: 12px;
+}

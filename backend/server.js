@@ -1,26 +1,28 @@
 const express = require("express");
 const cors = require("cors");
-const orderRoutes = require("./routes/orderRoutes");
 require("dotenv").config();
-
 const connectDB = require("./config/db");
-const productRoutes = require("./routes/productRoutes");
 
+const orderRoutes = require("./routes/orderRoutes");
+const productRoutes = require("./routes/productRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
+const authRoutes = require("./routes/authRoutes");
 const app = express();
 
 // Middleware
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-  })
-);
+// app.use(
+//   cors({
+//     origin: "http://localhost:5173",
+//   })
+// );
+app.use(cors());
 app.use(express.json());
 
 // API routes
-// API routes
+app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
-
+app.use("/api/payments", paymentRoutes);
 // Home route
 app.get("/", (req, res) => {
   res.send("E-commerce backend is running!");
