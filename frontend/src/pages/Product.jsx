@@ -98,8 +98,8 @@ const Product = () => {
           {/* Price and Stock */}
           <div className="mb-6 flex flex-wrap items-center gap-4">
             <p className="text-2xl font-bold text-orange-600 sm:text-3xl">
-              {currency}
               {productsData.price}
+              {currency}
             </p>
 
             <span className="rounded-sm bg-emerald-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700">

@@ -9,7 +9,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
 
-  const {getCartCount, setCartItems} = useContext(ShopContext)
+  const { getCartCount, setCartItems } = useContext(ShopContext);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -51,7 +51,24 @@ const Navbar = () => {
           </Link>
 
           {/* Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          <div>
+            <NavLink
+              to="/"
+              className={({ isActive }) =>
+                `relative pb-2 text-xs uppercase tracking-wider transition-all duration-300
+    after:absolute after:bottom-0 after:left-0 after:h-[2px]
+    after:bg-orange-500 after:transition-all after:duration-300
+    ${
+      isActive
+        ? "font-extrabold text-black after:w-full"
+        : "font-medium text-gray-500 after:w-0 hover:text-black"
+    }`
+              }
+            >
+              Home
+            </NavLink>
+          </div>
+          <div className="hidden md:flex items-center gap-8 ">
             {navlinks.map((link) => (
               <NavLink
                 key={link.path}
@@ -132,7 +149,7 @@ const Navbar = () => {
               className="text-gray-700 hover:text-orange-500"
             >
               <BiCart className="text-xl" />
-              {getCartCount()>0 && (
+              {getCartCount() > 0 && (
                 <span className="absolute top-1 right-1">{getCartCount()}</span>
               )}
             </Link>

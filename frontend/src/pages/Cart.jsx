@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import { ShopContext } from "../context/ShopContext";
+import CartTotal from "../components/CartTotal";
 import { FiTrash2 } from "react-icons/fi";
 
 const Cart = () => {
@@ -17,9 +18,9 @@ const Cart = () => {
   );
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Cart Container */}
-      <div className="max-w-6xl mx-auto px-5 sm:px-8 lg:px-10 pt-16 pb-24">
+    <div className="max-w-[1400px] mx-auto px-5 sm:px-8 lg:px-12 pb-20">
+      {/* Headers */}
+      <div className="pt-32 sm:pt-36 lg:pt-40 pb-6">
         {/* Cart Heading */}
         <div className="mb-10">
           <h1 className="text-2xl sm:text-3xl font-black italic uppercase tracking-tight text-gray-900">
@@ -111,6 +112,9 @@ const Cart = () => {
               </div>
             );
           })}
+        </div>
+        <div className="w-full sm:w-[450px]">
+          <CartTotal />
         </div>
 
         {/* Empty Cart */}

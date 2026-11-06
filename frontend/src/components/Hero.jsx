@@ -56,24 +56,6 @@ const Hero = () => {
             Discover the intersection of comfort and high-fashion. Our 2026
             collection features sustainable materials and timeless silhouettes.
           </p>
-
-          {/* Buttons */}
-          <div className="mt-7 flex flex-wrap items-center gap-4">
-            <Link
-              to="/category/Women"
-              className="inline-flex items-center gap-3 rounded-full bg-black px-6 py-3.5 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-orange-500"
-            >
-              Shop Collection
-              <FaArrowRight />
-            </Link>
-
-            <Link
-              to="/category/Women"
-              className="rounded-full border border-gray-100 px-6 py-3.5 text-xs font-bold uppercase tracking-wider text-gray-700 transition hover:border-orange-400 hover:text-orange-500"
-            >
-              View Lookbook
-            </Link>
-          </div>
         </div>
 
         {/* Right Side: Fashion Image */}

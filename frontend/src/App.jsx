@@ -12,6 +12,7 @@ import Collection from "./pages/Collection";
 import Order from "./pages/Order";
 import Logout from "./pages/Logout";
 import ShopContextProvider from "./context/ShopContext";
+import PlaceOrder from "./pages/PlaceOrder";
 
 const App = () => {
   return (
@@ -29,6 +30,7 @@ const App = () => {
           <Route path="/orders" element={<Order />} />
           <Route path="/product/:productId" element={<Product />} />
           <Route path="/category/:category" element={<Collection />} />
+          <Route path="/place-order" element={<PlaceOrder />} />
         </Routes>
 
         <Footer />

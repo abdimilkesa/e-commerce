@@ -1,15 +1,59 @@
-import { createContext, useState } from "react";
-import { product } from "../assets/assets";
+import { createContext, useState, useEffect } from "react";
+import { product as localProducts } from "../assets/assets";
 import { toast } from "react-toastify";
 
 export const ShopContext = createContext();
 
 const ShopContextProvider = ({ children }) => {
-  const [products, setProducts] = useState(product);
-  const currency = "$";
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // Cart items state
+  const currency = "Birr";
+
   const [cartItems, setCartItems] = useState({});
+
+  // Fetch products from MongoDB through Express API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/products");
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch products");
+        }
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error("Could not load products");
+        }
+
+        // Connect database products with existing local images
+        const updatedProducts = data.products.map((dbProduct) => {
+          const localProduct = localProducts.find(
+            (item) =>
+              item.id === dbProduct.legacyId || item._id === dbProduct.legacyId
+          );
+
+          return {
+            ...dbProduct,
+            image: localProduct?.image || dbProduct.image,
+          };
+        });
+
+        setProducts(updatedProducts);
+      } catch (err) {
+        console.error("Product fetching error:", err);
+        setError(err.message);
+        toast.error("Unable to load products");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   // Add product to cart
   const addToCart = (itemId, size) => {
@@ -19,18 +63,18 @@ const ShopContextProvider = ({ children }) => {
     }
 
     setCartItems((prev) => {
-      const updateCart = { ...prev };
+      const updatedCart = { ...prev };
 
-      if (!updateCart[itemId]) {
-        updateCart[itemId] = {};
+      if (!updatedCart[itemId]) {
+        updatedCart[itemId] = {};
       }
 
-      updateCart[itemId] = {
-        ...updateCart[itemId],
-        [size]: (updateCart[itemId][size] || 0) + 1,
+      updatedCart[itemId] = {
+        ...updatedCart[itemId],
+        [size]: (updatedCart[itemId][size] || 0) + 1,
       };
 
-      return updateCart;
+      return updatedCart;
     });
 
     toast.success("Product added to cart successfully");
@@ -64,7 +108,6 @@ const ShopContextProvider = ({ children }) => {
         cartData[itemId][size] = quantity;
       }
 
-      // Remove product if no sizes remain
       if (Object.keys(cartData[itemId]).length === 0) {
         delete cartData[itemId];
       }
@@ -73,12 +116,12 @@ const ShopContextProvider = ({ children }) => {
     });
   };
 
-  // Get total cart amount
+  // Calculate total cart amount
   const getCartAmount = () => {
     let totalAmount = 0;
 
     for (const itemId in cartItems) {
-      const itemInfo = products.find((product) => product._id === itemId);
+      const itemInfo = products.find((item) => item._id === itemId);
 
       if (itemInfo) {
         for (const size in cartItems[itemId]) {
@@ -90,10 +133,11 @@ const ShopContextProvider = ({ children }) => {
     return totalAmount;
   };
 
-  // Context values
   const value = {
     products,
     setProducts,
+    loading,
+    error,
     currency,
     cartItems,
     setCartItems,
