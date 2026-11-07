@@ -47,8 +47,12 @@ const Login = () => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // Navigate after successful login
-      navigate("/");
+      // Redirect according to account role
+      if (data.user.role === "admin") {
+        navigate("/admin", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {
@@ -59,7 +63,6 @@ const Login = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-10">
       <div className="w-full max-w-md rounded-3xl bg-white p-7 shadow-xl sm:p-10">
-        {/* Heading */}
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-extrabold italic tracking-tight text-gray-950">
             Welcome Back<span className="text-orange-500">.</span>
@@ -70,7 +73,6 @@ const Login = () => {
           </p>
         </div>
 
-        {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="email"
@@ -94,14 +96,12 @@ const Login = () => {
             className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-sm outline-none transition focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-100"
           />
 
-          {/* Error Message */}
           {error && (
             <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
               {error}
             </p>
           )}
 
-          {/* Forgot Password */}
           <div className="flex justify-end pt-1">
             <Link
               to="/forgot-password"
@@ -111,7 +111,6 @@ const Login = () => {
             </Link>
           </div>
 
-          {/* Login Button */}
           <button
             type="submit"
             disabled={loading}
@@ -121,7 +120,6 @@ const Login = () => {
           </button>
         </form>
 
-        {/* Create Account */}
         <div className="mt-6 border-t border-gray-100 pt-6 text-center">
           <p className="text-sm text-gray-500">Don't have an account yet?</p>
 
@@ -133,7 +131,6 @@ const Login = () => {
           </Link>
         </div>
 
-        {/* Back to Shopping */}
         <div className="mt-6 text-center">
           <Link
             to="/"
