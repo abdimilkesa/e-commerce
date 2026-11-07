@@ -19,6 +19,7 @@ import PaymentResult from "./pages/PaymentResult";
 import Admin from "./pages/Admin";
 import ShopContextProvider from "./context/ShopContext";
 import Products from "./pages/Products";
+import Customers from "./pages/Customers";
 
 const App = () => {
   return (
@@ -50,10 +51,12 @@ const App = () => {
           <Route path="/payment" element={<Payment />} />
 
           <Route path="/payment-result" element={<PaymentResult />} />
-          
+
           <Route path="/admin" element={<Admin />} />
 
           <Route path="/admin/products" element={<Products />} />
+
+          <Route path="/admin/customers" element={<Customers />} />
         </Routes>
 
         <Footer />

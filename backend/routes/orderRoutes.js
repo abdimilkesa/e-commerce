@@ -180,6 +180,47 @@ router.get("/admin/all", authMiddleware, adminMiddleware, async (req, res) => {
   }
 });
 
+// ADMIN: GET ALL ORDERS FOR A SPECIFIC CUSTOMER
+router.get(
+  "/admin/customer/:customerId",
+  authMiddleware,
+  adminMiddleware,
+  async (req, res) => {
+    try {
+      const { customerId } = req.params;
+
+      if (!mongoose.isValidObjectId(customerId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid customer ID.",
+        });
+      }
+
+      const orders = await Order.find({
+        user: customerId,
+      }).sort({ createdAt: -1 });
+
+      const totalSpent = orders
+        .filter((order) => order.paymentStatus === "paid")
+        .reduce((total, order) => total + order.totalAmount, 0);
+
+      return res.status(200).json({
+        success: true,
+        count: orders.length,
+        totalSpent,
+        orders,
+      });
+    } catch (error) {
+      console.error("Customer order history error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Unable to retrieve customer order history.",
+      });
+    }
+  }
+);
+
 // ADMIN: UPDATE ORDER STATUS
 router.patch(
   "/admin/:orderId/status",

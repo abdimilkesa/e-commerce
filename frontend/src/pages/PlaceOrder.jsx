@@ -27,7 +27,7 @@ const PlaceOrder = () => {
 
   // Phone number state
   const [phone, setPhone] = useState("");
-
+  const { clearCart } = useContext(ShopContext);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",

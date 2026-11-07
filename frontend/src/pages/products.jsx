@@ -555,13 +555,18 @@ const Products = () => {
                   {previewImage && (
                     <div className="mt-3 flex items-center gap-3">
                       <img
-                        src={getImageUrl(previewImage)}
-                        alt="Product preview"
+                        src={getImageUrl(
+                          Array.isArray(product.image)
+                            ? product.image[0]
+                            : product.image
+                        )}
+                        alt={product.name}
+                        loading="lazy"
                         onError={(e) => {
                           e.currentTarget.onerror = null;
                           e.currentTarget.src = PLACEHOLDER_IMAGE;
                         }}
-                        className="h-20 w-20 rounded-xl border border-gray-200 bg-gray-50 object-cover"
+                        className="h-14 w-14 shrink-0 rounded-xl border border-gray-100 bg-gray-50 object-cover"
                       />
 
                       <p className="text-xs text-gray-500">
