@@ -14,6 +14,8 @@ import {
   FiClock,
 } from "react-icons/fi";
 
+import AdminLayout from "../components/AdminLayout";
+
 const API_URL = "http://localhost:5000/api/customers";
 const ORDER_API_URL = "http://localhost:5000/api/orders";
 
@@ -35,6 +37,7 @@ const Customers = () => {
 
   const token = localStorage.getItem("token");
 
+  // Fetch customers.
   const fetchCustomers = async () => {
     try {
       setLoading(true);
@@ -62,11 +65,20 @@ const Customers = () => {
     }
   };
 
+  // Debounced customer search.
   useEffect(() => {
+    if (!token) {
+      toast.error("Please log in first.");
+      window.location.replace("/login");
+      return;
+    }
+
     const timer = setTimeout(fetchCustomers, 400);
+
     return () => clearTimeout(timer);
   }, [search]);
 
+  // View customer details.
   const viewCustomer = async (customerId) => {
     try {
       setDetailsLoading(true);
@@ -91,7 +103,7 @@ const Customers = () => {
     }
   };
 
-  // FETCH A CUSTOMER'S ORDER HISTORY
+  // Fetch customer's order history.
   const viewCustomerOrders = async (customer) => {
     try {
       setOrdersLoading(true);
@@ -115,6 +127,7 @@ const Customers = () => {
       }
 
       setCustomerOrders(data.orders || []);
+
       setOrderSummary({
         count: data.count || 0,
         totalSpent: data.totalSpent || 0,
@@ -159,51 +172,72 @@ const Customers = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f8f8] p-4 sm:p-6 lg:p-8">
-      <div className="mx-auto max-w-7xl">
+    <AdminLayout
+      title="Customer Management"
+      subtitle="Manage customers and monitor their shopping activity"
+    >
+      <div className="space-y-6">
         {/* HEADER */}
-        <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-[3px] text-orange-500">
-              Admin Dashboard
-            </p>
+            <h2 className="text-2xl font-bold text-gray-900">All Customers</h2>
 
-            <h1 className="text-2xl font-bold text-black sm:text-3xl">
-              Customers
-            </h1>
-
-            <p className="mt-2 text-sm text-gray-500">
-              Manage customers and monitor their shopping activity.
+            <p className="mt-1 text-sm text-gray-500">
+              View customer information and shopping activity.
             </p>
           </div>
 
           <button
             onClick={fetchCustomers}
-            className="flex items-center justify-center gap-2 rounded-lg bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-500"
+            disabled={loading}
+            className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-700 transition hover:border-blue-500 hover:text-blue-600 disabled:opacity-50"
           >
-            <FiRefreshCw />
+            <FiRefreshCw className={loading ? "animate-spin" : ""} />
             Refresh
           </button>
         </div>
 
         {/* CUSTOMER SUMMARY */}
-        <div className="mb-6 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 text-xl text-orange-500">
-              <FiUsers />
-            </div>
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-xl text-blue-600">
+                <FiUsers />
+              </div>
 
-            <div>
-              <p className="text-sm text-gray-500">Total Customers</p>
-              <h2 className="text-2xl font-bold text-black">
-                {customers.length}
-              </h2>
+              <div>
+                <p className="text-sm font-medium text-gray-500">
+                  Total Customers
+                </p>
+
+                <h2 className="mt-1 text-2xl font-bold text-gray-900">
+                  {customers.length}
+                </h2>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-50 text-xl text-green-600">
+                <FiShoppingBag />
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-gray-500">
+                  Registered Customers
+                </p>
+
+                <h2 className="mt-1 text-2xl font-bold text-gray-900">
+                  {customers.length}
+                </h2>
+              </div>
             </div>
           </div>
         </div>
 
         {/* SEARCH */}
-        <div className="mb-6 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
           <div className="relative">
             <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
 
@@ -212,25 +246,34 @@ const Customers = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search customers by name or email..."
-              className="w-full rounded-lg border border-gray-200 py-3 pl-11 pr-4 text-sm text-black outline-none transition placeholder:text-gray-400 focus:border-orange-500"
+              className="w-full rounded-xl border border-gray-200 py-3 pl-11 pr-4 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-blue-500"
             />
           </div>
         </div>
 
         {/* CUSTOMER TABLE */}
-        <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
-          <div className="border-b border-gray-100 px-6 py-5">
-            <h2 className="font-bold text-black">Customer List</h2>
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
+            <div>
+              <h2 className="font-bold text-gray-900">Customer List</h2>
+              <p className="mt-1 text-xs text-gray-500">
+                {customers.length} customers found
+              </p>
+            </div>
+
+            <FiUsers className="text-xl text-gray-400" />
           </div>
 
           {loading ? (
             <div className="flex justify-center py-16">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-orange-500" />
+              <FiRefreshCw className="animate-spin text-3xl text-blue-600" />
             </div>
           ) : customers.length === 0 ? (
             <div className="py-16 text-center">
               <FiUsers className="mx-auto mb-3 text-4xl text-gray-300" />
+
               <p className="font-semibold text-gray-700">No customers found</p>
+
               <p className="mt-1 text-sm text-gray-400">Try another search.</p>
             </div>
           ) : (
@@ -250,11 +293,11 @@ const Customers = () => {
                   {customers.map((customer) => (
                     <tr
                       key={customer._id}
-                      className="transition hover:bg-orange-50/40"
+                      className="transition hover:bg-blue-50/40"
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black text-sm font-bold uppercase text-white">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-sm font-bold uppercase text-white">
                             {customer.name?.charAt(0) || "C"}
                           </div>
 
@@ -275,7 +318,7 @@ const Customers = () => {
                       <td className="px-6 py-4 text-center">
                         <button
                           onClick={() => viewCustomer(customer._id)}
-                          className="inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white transition hover:bg-orange-500"
+                          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-blue-700"
                         >
                           <FiEye />
                           View
@@ -285,7 +328,7 @@ const Customers = () => {
                       <td className="px-6 py-4 text-center">
                         <button
                           onClick={() => viewCustomerOrders(customer)}
-                          className="inline-flex items-center gap-2 rounded-lg border border-orange-200 bg-orange-50 px-4 py-2 text-xs font-semibold text-orange-600 transition hover:bg-orange-500 hover:text-white"
+                          className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-semibold text-blue-600 transition hover:bg-blue-600 hover:text-white"
                         >
                           <FiShoppingBag />
                           View Orders
@@ -305,45 +348,51 @@ const Customers = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-black">Customer Details</h2>
+              <h2 className="text-xl font-bold text-gray-900">
+                Customer Details
+              </h2>
 
               <button
                 onClick={() => setSelectedCustomer(null)}
-                className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-black"
+                className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
               >
                 <FiX size={20} />
               </button>
             </div>
 
             <div className="mb-6 flex flex-col items-center">
-              <div className="mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-orange-100 text-3xl font-bold uppercase text-orange-500">
+              <div className="mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 text-3xl font-bold uppercase text-blue-600">
                 {selectedCustomer.name?.charAt(0) || "C"}
               </div>
 
-              <h3 className="text-lg font-bold text-black">
+              <h3 className="text-lg font-bold text-gray-900">
                 {selectedCustomer.name}
               </h3>
 
-              <span className="mt-1 rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-600">
+              <span className="mt-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
                 Customer
               </span>
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-start gap-3 rounded-lg bg-gray-50 p-4">
-                <FiMail className="mt-1 text-orange-500" />
+              <div className="flex items-start gap-3 rounded-xl bg-gray-50 p-4">
+                <FiMail className="mt-1 text-blue-600" />
+
                 <div className="min-w-0">
                   <p className="text-xs text-gray-400">Email Address</p>
+
                   <p className="break-all text-sm font-semibold text-gray-800">
                     {selectedCustomer.email}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 rounded-lg bg-gray-50 p-4">
-                <FiCalendar className="mt-1 text-orange-500" />
+              <div className="flex items-start gap-3 rounded-xl bg-gray-50 p-4">
+                <FiCalendar className="mt-1 text-blue-600" />
+
                 <div>
                   <p className="text-xs text-gray-400">Registration Date</p>
+
                   <p className="text-sm font-semibold text-gray-800">
                     {formatDate(selectedCustomer.createdAt)}
                   </p>
@@ -353,7 +402,7 @@ const Customers = () => {
 
             <button
               onClick={() => setSelectedCustomer(null)}
-              className="mt-6 w-full rounded-lg bg-black py-3 text-sm font-semibold text-white transition hover:bg-orange-500"
+              className="mt-6 w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
             >
               Close
             </button>
@@ -364,15 +413,15 @@ const Customers = () => {
       {/* CUSTOMER ORDER HISTORY MODAL */}
       {selectedOrdersCustomer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-5">
-          <div className="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl bg-[#f8f8f8] shadow-2xl">
+          <div className="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl bg-gray-50 shadow-2xl">
             {/* MODAL HEADER */}
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white px-5 py-5 sm:px-7">
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-orange-500">
+                <p className="text-xs font-bold uppercase tracking-widest text-blue-600">
                   Customer Management
                 </p>
 
-                <h2 className="mt-1 text-lg font-bold text-black sm:text-xl">
+                <h2 className="mt-1 text-lg font-bold text-gray-900 sm:text-xl">
                   Order History
                 </h2>
 
@@ -383,7 +432,7 @@ const Customers = () => {
 
               <button
                 onClick={() => setSelectedOrdersCustomer(null)}
-                className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-black"
+                className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
               >
                 <FiX size={22} />
               </button>
@@ -392,36 +441,38 @@ const Customers = () => {
             <div className="p-5 sm:p-7">
               {ordersLoading ? (
                 <div className="flex justify-center py-20">
-                  <div className="h-9 w-9 animate-spin rounded-full border-4 border-gray-200 border-t-orange-500" />
+                  <FiRefreshCw className="animate-spin text-3xl text-blue-600" />
                 </div>
               ) : (
                 <>
                   {/* ORDER SUMMARY */}
                   <div className="mb-7 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+                    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
                       <div className="flex items-center gap-3">
-                        <div className="rounded-lg bg-orange-100 p-3 text-orange-500">
+                        <div className="rounded-lg bg-blue-50 p-3 text-blue-600">
                           <FiPackage size={20} />
                         </div>
 
                         <div>
                           <p className="text-sm text-gray-500">Total Orders</p>
-                          <h3 className="text-2xl font-bold text-black">
+
+                          <h3 className="text-2xl font-bold text-gray-900">
                             {orderSummary.count}
                           </h3>
                         </div>
                       </div>
                     </div>
 
-                    <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+                    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
                       <div className="flex items-center gap-3">
-                        <div className="rounded-lg bg-green-100 p-3 text-green-600">
+                        <div className="rounded-lg bg-green-50 p-3 text-green-600">
                           <FiDollarSign size={20} />
                         </div>
 
                         <div>
                           <p className="text-sm text-gray-500">Total Paid</p>
-                          <h3 className="text-xl font-bold text-black">
+
+                          <h3 className="text-xl font-bold text-gray-900">
                             {formatCurrency(orderSummary.totalSpent)}
                           </h3>
                         </div>
@@ -431,12 +482,12 @@ const Customers = () => {
 
                   {/* ORDER LIST */}
                   <div className="mb-4 flex items-center gap-2">
-                    <FiShoppingBag className="text-orange-500" />
-                    <h3 className="font-bold text-black">Customer Orders</h3>
+                    <FiShoppingBag className="text-blue-600" />
+                    <h3 className="font-bold text-gray-900">Customer Orders</h3>
                   </div>
 
                   {customerOrders.length === 0 ? (
-                    <div className="rounded-xl border border-gray-100 bg-white py-16 text-center">
+                    <div className="rounded-xl border border-gray-200 bg-white py-16 text-center">
                       <FiShoppingBag className="mx-auto mb-3 text-4xl text-gray-300" />
 
                       <h3 className="font-semibold text-gray-700">
@@ -452,13 +503,13 @@ const Customers = () => {
                       {customerOrders.map((order) => (
                         <div
                           key={order._id}
-                          className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm"
+                          className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
                         >
                           <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                             <div>
                               <p className="text-xs text-gray-400">Order ID</p>
 
-                              <p className="break-all text-sm font-bold text-black">
+                              <p className="break-all text-sm font-bold text-gray-900">
                                 #{order._id}
                               </p>
                             </div>
@@ -488,6 +539,7 @@ const Customers = () => {
                                 <FiCalendar />
                                 Order Date
                               </p>
+
                               <p className="text-sm font-semibold text-gray-700">
                                 {formatDate(order.createdAt)}
                               </p>
@@ -498,6 +550,7 @@ const Customers = () => {
                                 <FiClock />
                                 Payment Method
                               </p>
+
                               <p className="text-sm font-semibold capitalize text-gray-700">
                                 {order.paymentMethod}
                               </p>
@@ -508,7 +561,8 @@ const Customers = () => {
                                 <FiDollarSign />
                                 Total Amount
                               </p>
-                              <p className="text-sm font-bold text-orange-600">
+
+                              <p className="text-sm font-bold text-blue-600">
                                 {formatCurrency(order.totalAmount)}
                               </p>
                             </div>
@@ -536,7 +590,7 @@ const Customers = () => {
                                     </p>
                                   </div>
 
-                                  <p className="text-sm font-semibold text-black">
+                                  <p className="text-sm font-semibold text-gray-900">
                                     {formatCurrency(item.price * item.quantity)}
                                   </p>
                                 </div>
@@ -554,7 +608,7 @@ const Customers = () => {
             <div className="border-t border-gray-100 bg-white p-5">
               <button
                 onClick={() => setSelectedOrdersCustomer(null)}
-                className="w-full rounded-lg bg-black py-3 text-sm font-semibold text-white transition hover:bg-orange-500 sm:w-auto sm:px-10"
+                className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 sm:w-auto sm:px-10"
               >
                 Close Order History
               </button>
@@ -566,12 +620,12 @@ const Customers = () => {
       {/* LOADING CUSTOMER DETAILS */}
       {detailsLoading && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30">
-          <div className="rounded-xl bg-white px-6 py-4 text-sm font-semibold text-black shadow-xl">
+          <div className="rounded-xl bg-white px-6 py-4 text-sm font-semibold text-gray-900 shadow-xl">
             Loading customer details...
           </div>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 };
 

@@ -10,6 +10,8 @@ import {
   FiSearch,
 } from "react-icons/fi";
 
+import AdminLayout from "../components/AdminLayout";
+
 const API_URL = "http://localhost:5000/api";
 const SERVER_URL = "http://localhost:5000";
 
@@ -30,7 +32,6 @@ const initialForm = {
   bestseller: false,
 };
 
-// Convert image data into an array.
 const getImageArray = (image) => {
   if (Array.isArray(image)) {
     return image.filter(Boolean);
@@ -46,7 +47,6 @@ const getImageArray = (image) => {
   return [];
 };
 
-// Convert stored image paths into usable image URLs.
 const getImageUrl = (image) => {
   if (!image) return PLACEHOLDER_IMAGE;
 
@@ -87,7 +87,7 @@ const Products = () => {
 
   const token = localStorage.getItem("token");
 
-  // Fetch all products for the admin.
+  // Fetch all products.
   const fetchProducts = async () => {
     try {
       setLoading(true);
@@ -250,31 +250,27 @@ const Products = () => {
       .includes(search.toLowerCase())
   );
 
-  // Preview the first image in the form.
+  // Preview first image.
   const previewImage = getImageArray(formData.image)[0];
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-8 sm:px-8">
-      <div className="mx-auto max-w-7xl">
+    <AdminLayout
+      title="Product Management"
+      subtitle="Manage your store products, prices, and inventory"
+    >
+      <div className="space-y-6">
         {/* Header */}
-        <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-orange-500">
-              Administration
-            </p>
-
-            <h1 className="mt-2 text-3xl font-extrabold text-gray-950">
-              Product Management
-            </h1>
-
-            <p className="mt-2 text-sm text-gray-500">
-              Manage your store products, prices, and inventory.
+            <h2 className="text-2xl font-bold text-gray-900">All Products</h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Manage your products and inventory.
             </p>
           </div>
 
           <button
             onClick={openAddForm}
-            className="flex items-center justify-center gap-2 rounded-xl bg-gray-950 px-6 py-3 text-sm font-bold text-white transition hover:bg-orange-600"
+            className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-blue-700"
           >
             <FiPlus size={18} />
             Add Product
@@ -282,23 +278,25 @@ const Products = () => {
         </div>
 
         {/* Statistics */}
-        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <p className="text-sm text-gray-500">Total Products</p>
-            <h2 className="mt-2 text-3xl font-bold text-gray-950">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+            <p className="text-sm font-medium text-gray-500">Total Products</p>
+            <h2 className="mt-2 text-3xl font-bold text-gray-900">
               {products.length}
             </h2>
           </div>
 
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <p className="text-sm text-gray-500">Active Products</p>
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+            <p className="text-sm font-medium text-gray-500">Active Products</p>
             <h2 className="mt-2 text-3xl font-bold text-green-600">
               {products.filter((p) => p.isActive).length}
             </h2>
           </div>
 
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <p className="text-sm text-gray-500">Inactive Products</p>
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+            <p className="text-sm font-medium text-gray-500">
+              Inactive Products
+            </p>
             <h2 className="mt-2 text-3xl font-bold text-red-500">
               {products.filter((p) => !p.isActive).length}
             </h2>
@@ -306,7 +304,7 @@ const Products = () => {
         </div>
 
         {/* Search and Refresh */}
-        <div className="mb-5 flex flex-col gap-3 sm:flex-row">
+        <div className="flex flex-col gap-3 sm:flex-row">
           <div className="relative w-full sm:max-w-md">
             <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
 
@@ -315,14 +313,14 @@ const Products = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search products by name or category..."
-              className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-11 pr-4 text-sm outline-none transition focus:border-orange-500"
+              className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-11 pr-4 text-sm outline-none transition focus:border-blue-500"
             />
           </div>
 
           <button
             onClick={fetchProducts}
             disabled={loading}
-            className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-700 transition hover:border-orange-500 hover:text-orange-600 disabled:opacity-50"
+            className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-700 transition hover:border-blue-500 hover:text-blue-600 disabled:opacity-50"
           >
             <FiRefreshCw className={loading ? "animate-spin" : ""} />
             Refresh
@@ -330,10 +328,10 @@ const Products = () => {
         </div>
 
         {/* Products Table */}
-        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
           {loading ? (
             <div className="flex justify-center py-20">
-              <FiRefreshCw className="animate-spin text-3xl text-orange-500" />
+              <FiRefreshCw className="animate-spin text-3xl text-blue-600" />
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="py-20 text-center">
@@ -371,7 +369,6 @@ const Products = () => {
                         key={product._id}
                         className="transition hover:bg-gray-50"
                       >
-                        {/* Product Image and Name */}
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <img
@@ -432,7 +429,7 @@ const Products = () => {
                             <button
                               onClick={() => openEditForm(product)}
                               title="Edit product"
-                              className="rounded-lg border border-gray-200 p-2 text-gray-600 transition hover:border-orange-500 hover:text-orange-600"
+                              className="rounded-lg border border-gray-200 p-2 text-gray-600 transition hover:border-blue-500 hover:text-blue-600"
                             >
                               <FiEdit size={16} />
                             </button>
@@ -494,7 +491,7 @@ const Products = () => {
                       value={formData.name}
                       onChange={handleChange}
                       placeholder="Product name"
-                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-500"
+                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-blue-500"
                     />
                   </div>
 
@@ -512,7 +509,7 @@ const Products = () => {
                       value={formData.price}
                       onChange={handleChange}
                       placeholder="0.00"
-                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-500"
+                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-blue-500"
                     />
                   </div>
                 </div>
@@ -528,7 +525,7 @@ const Products = () => {
                     onChange={handleChange}
                     rows="3"
                     placeholder="Describe your product..."
-                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-500"
+                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-blue-500"
                   />
                 </div>
 
@@ -544,7 +541,7 @@ const Products = () => {
                     onChange={handleChange}
                     rows="2"
                     placeholder="Enter image URLs separated by commas"
-                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-500"
+                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-blue-500"
                   />
 
                   <p className="mt-1 text-xs text-gray-400">
@@ -555,13 +552,8 @@ const Products = () => {
                   {previewImage && (
                     <div className="mt-3 flex items-center gap-3">
                       <img
-                        src={getImageUrl(
-                          Array.isArray(product.image)
-                            ? product.image[0]
-                            : product.image
-                        )}
-                        alt={product.name}
-                        loading="lazy"
+                        src={getImageUrl(previewImage)}
+                        alt={formData.name || "Product preview"}
                         onError={(e) => {
                           e.currentTarget.onerror = null;
                           e.currentTarget.src = PLACEHOLDER_IMAGE;
@@ -587,7 +579,7 @@ const Products = () => {
                       value={formData.category}
                       onChange={handleChange}
                       required
-                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-orange-500"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500"
                     >
                       <option value="Women">Women</option>
                       <option value="Men">Men</option>
@@ -605,7 +597,7 @@ const Products = () => {
                       value={formData.subCategory}
                       onChange={handleChange}
                       placeholder="e.g. T-shirts"
-                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-500"
+                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-blue-500"
                     />
                   </div>
                 </div>
@@ -621,7 +613,7 @@ const Products = () => {
                       value={formData.sizes}
                       onChange={handleChange}
                       placeholder="S, M, L, XL"
-                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-500"
+                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-blue-500"
                     />
 
                     <p className="mt-1 text-xs text-gray-400">
@@ -640,7 +632,7 @@ const Products = () => {
                       name="stock"
                       value={formData.stock}
                       onChange={handleChange}
-                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-500"
+                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-blue-500"
                     />
                   </div>
                 </div>
@@ -654,7 +646,7 @@ const Products = () => {
                     name="currency"
                     value={formData.currency}
                     onChange={handleChange}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-orange-500"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500"
                   >
                     <option value="ETB">ETB</option>
                     <option value="USD">USD</option>
@@ -668,7 +660,7 @@ const Products = () => {
                       name="isActive"
                       checked={formData.isActive}
                       onChange={handleChange}
-                      className="accent-orange-500"
+                      className="accent-blue-600"
                     />
                     Active product
                   </label>
@@ -679,7 +671,7 @@ const Products = () => {
                       name="bestseller"
                       checked={formData.bestseller}
                       onChange={handleChange}
-                      className="accent-orange-500"
+                      className="accent-blue-600"
                     />
                     Bestseller
                   </label>
@@ -697,7 +689,7 @@ const Products = () => {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="rounded-xl bg-gray-950 px-7 py-3 text-sm font-bold text-white transition hover:bg-orange-600 disabled:opacity-60"
+                    className="rounded-xl bg-blue-600 px-7 py-3 text-sm font-bold text-white transition hover:bg-blue-700 disabled:opacity-60"
                   >
                     {saving
                       ? "Saving..."
@@ -711,7 +703,7 @@ const Products = () => {
           </div>
         )}
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

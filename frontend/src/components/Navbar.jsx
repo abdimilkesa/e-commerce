@@ -3,13 +3,38 @@ import { Link, NavLink } from "react-router-dom";
 import { FaRegCompass } from "react-icons/fa";
 import { BiCart, BiChevronDown, BiUser } from "react-icons/bi";
 import { ShopContext } from "../context/ShopContext";
-// import { useContext } from "react";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [user, setUser] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "null");
+    } catch {
+      return null;
+    }
+  });
 
-  const { getCartCount, setCartItems } = useContext(ShopContext);
+  const { getCartCount } = useContext(ShopContext);
+
+  // Keep user information updated
+  useEffect(() => {
+    const updateUser = () => {
+      try {
+        setUser(JSON.parse(localStorage.getItem("user") || "null"));
+      } catch {
+        setUser(null);
+      }
+    };
+
+    window.addEventListener("storage", updateUser);
+    window.addEventListener("adminProfileUpdated", updateUser);
+
+    return () => {
+      window.removeEventListener("storage", updateUser);
+      window.removeEventListener("adminProfileUpdated", updateUser);
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -50,25 +75,27 @@ const Navbar = () => {
             </h2>
           </Link>
 
-          {/* Navigation */}
+          {/* Home */}
           <div>
             <NavLink
               to="/"
               className={({ isActive }) =>
                 `relative pb-2 text-xs uppercase tracking-wider transition-all duration-300
-    after:absolute after:bottom-0 after:left-0 after:h-[2px]
-    after:bg-orange-500 after:transition-all after:duration-300
-    ${
-      isActive
-        ? "font-extrabold text-black after:w-full"
-        : "font-medium text-gray-500 after:w-0 hover:text-black"
-    }`
+                after:absolute after:bottom-0 after:left-0 after:h-[2px]
+                after:bg-orange-500 after:transition-all after:duration-300
+                ${
+                  isActive
+                    ? "font-extrabold text-black after:w-full"
+                    : "font-medium text-gray-500 after:w-0 hover:text-black"
+                }`
               }
             >
               Home
             </NavLink>
           </div>
-          <div className="hidden md:flex items-center gap-8 ">
+
+          {/* Navigation */}
+          <div className="hidden md:flex items-center gap-8">
             {navlinks.map((link) => (
               <NavLink
                 key={link.path}
@@ -108,9 +135,23 @@ const Navbar = () => {
                 <BiChevronDown className="text-sm" />
               </button>
 
-              {/* Show menu only when clicked */}
               {accountOpen && (
-                <div className="absolute right-0 top-full mt-3 w-40 rounded-xl border border-gray-100 bg-white p-2 shadow-lg">
+                <div className="absolute right-0 top-full mt-3 w-48 rounded-xl border border-gray-100 bg-white p-2 shadow-lg">
+                  {/* Admin Dashboard: Admin only */}
+                  {user?.role === "admin" && (
+                    <>
+                      <Link
+                        to="/admin"
+                        onClick={() => setAccountOpen(false)}
+                        className="block rounded-lg px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-50"
+                      >
+                        Admin Dashboard
+                      </Link>
+
+                      <hr className="my-1 border-gray-100" />
+                    </>
+                  )}
+
                   <Link
                     to="/login"
                     onClick={() => setAccountOpen(false)}
@@ -146,11 +187,14 @@ const Navbar = () => {
             <Link
               to="/cart"
               aria-label="Shopping cart"
-              className="text-gray-700 hover:text-orange-500"
+              className="relative text-gray-700 hover:text-orange-500"
             >
               <BiCart className="text-xl" />
+
               {getCartCount() > 0 && (
-                <span className="absolute top-1 right-1">{getCartCount()}</span>
+                <span className="absolute -top-2 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-orange-500 px-1 text-[10px] font-bold text-white">
+                  {getCartCount()}
+                </span>
               )}
             </Link>
           </div>

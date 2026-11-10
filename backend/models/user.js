@@ -24,7 +24,18 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
 
-    // User role: customer or admin
+    phone: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    profilePicture: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
     role: {
       type: String,
       enum: ["customer", "admin"],
@@ -36,14 +47,14 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Hash the password before saving the user
+// Hash password before saving
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
 
   this.password = await bcrypt.hash(this.password, 12);
 });
 
-// Compare entered password with the stored hash
+// Compare passwords
 userSchema.methods.comparePassword = async function (enteredPassword) {
   return bcrypt.compare(enteredPassword, this.password);
 };
