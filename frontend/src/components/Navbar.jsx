@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { FaRegCompass } from "react-icons/fa";
 import { BiCart, BiChevronDown, BiUser } from "react-icons/bi";
 import { ShopContext } from "../context/ShopContext";
@@ -7,35 +7,50 @@ import { ShopContext } from "../context/ShopContext";
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
-  const [user, setUser] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("user") || "null");
-    } catch {
-      return null;
-    }
-  });
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
 
+  const location = useLocation();
   const { getCartCount } = useContext(ShopContext);
 
-  // Keep user information updated
-  useEffect(() => {
-    const updateUser = () => {
-      try {
-        setUser(JSON.parse(localStorage.getItem("user") || "null"));
-      } catch {
-        setUser(null);
-      }
-    };
+  // Read authentication information
+  const updateAuthState = () => {
+    const currentToken = localStorage.getItem("token");
+    let currentUser = null;
 
-    window.addEventListener("storage", updateUser);
-    window.addEventListener("adminProfileUpdated", updateUser);
+    try {
+      currentUser = JSON.parse(localStorage.getItem("user") || "null");
+    } catch {
+      currentUser = null;
+    }
+
+    setToken(currentToken);
+    setUser(currentUser);
+
+    if (!currentToken) {
+      setAccountOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    updateAuthState();
+  }, [location.pathname]);
+
+  // Listen for authentication changes
+  useEffect(() => {
+    window.addEventListener("storage", updateAuthState);
+    window.addEventListener("authChanged", updateAuthState);
+    window.addEventListener("adminProfileUpdated", updateAuthState);
 
     return () => {
-      window.removeEventListener("storage", updateUser);
-      window.removeEventListener("adminProfileUpdated", updateUser);
+      window.removeEventListener("storage", updateAuthState);
+      window.removeEventListener("authChanged", updateAuthState);
+      window.removeEventListener("adminProfileUpdated", updateAuthState);
     };
   }, []);
 
+  // Handle scrolling
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 0);
@@ -53,6 +68,9 @@ const Navbar = () => {
     { name: "Women", path: "/category/Women" },
     { name: "Kids", path: "/category/Kids" },
   ];
+
+  const isLoggedIn = Boolean(token);
+  const isAdmin = isLoggedIn && user?.role === "admin";
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 flex justify-center p-4 transition-all duration-500">
@@ -94,7 +112,7 @@ const Navbar = () => {
             </NavLink>
           </div>
 
-          {/* Navigation */}
+          {/* Original Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             {navlinks.map((link) => (
               <NavLink
@@ -120,6 +138,44 @@ const Navbar = () => {
             ))}
           </div>
 
+          {/* Categories Dropdown for Smaller Screens */}
+          <div className="relative md:hidden">
+            <button
+              type="button"
+              onClick={() => setCategoriesOpen(!categoriesOpen)}
+              aria-expanded={categoriesOpen}
+              className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-gray-700 hover:text-orange-500"
+            >
+              Categories
+              <BiChevronDown
+                className={`text-sm transition-transform ${
+                  categoriesOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {categoriesOpen && (
+              <div className="absolute left-0 top-full mt-3 w-36 rounded-xl border border-gray-100 bg-white p-2 shadow-lg">
+                {navlinks.map((link) => (
+                  <NavLink
+                    key={link.path}
+                    to={link.path}
+                    onClick={() => setCategoriesOpen(false)}
+                    className={({ isActive }) =>
+                      `block rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                        isActive
+                          ? "bg-orange-50 text-orange-600"
+                          : "text-gray-700 hover:bg-orange-50 hover:text-orange-600"
+                      }`
+                    }
+                  >
+                    {link.name}
+                  </NavLink>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Action Items */}
           <div className="flex items-center gap-4">
             {/* Account Dropdown */}
@@ -137,8 +193,8 @@ const Navbar = () => {
 
               {accountOpen && (
                 <div className="absolute right-0 top-full mt-3 w-48 rounded-xl border border-gray-100 bg-white p-2 shadow-lg">
-                  {/* Admin Dashboard: Admin only */}
-                  {user?.role === "admin" && (
+                  {/* Admin Dashboard */}
+                  {isAdmin && (
                     <>
                       <Link
                         to="/admin"
@@ -152,33 +208,39 @@ const Navbar = () => {
                     </>
                   )}
 
-                  <Link
-                    to="/login"
-                    onClick={() => setAccountOpen(false)}
-                    className="block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"
-                  >
-                    Login/Sign Up
-                  </Link>
+                  {/* Login */}
+                  {!isLoggedIn && (
+                    <Link
+                      to="/login"
+                      onClick={() => setAccountOpen(false)}
+                      className="block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"
+                    >
+                      Login / Sign Up
+                    </Link>
+                  )}
 
-                  <hr className="my-1 border-gray-100" />
+                  {/* Logged-in User Options */}
+                  {isLoggedIn && (
+                    <>
+                      <Link
+                        to="/orders"
+                        onClick={() => setAccountOpen(false)}
+                        className="block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"
+                      >
+                        My Orders
+                      </Link>
 
-                  <Link
-                    to="/orders"
-                    onClick={() => setAccountOpen(false)}
-                    className="block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"
-                  >
-                    My Orders
-                  </Link>
+                      <hr className="my-1 border-gray-100" />
 
-                  <hr className="my-1 border-gray-100" />
-
-                  <Link
-                    to="/logout"
-                    onClick={() => setAccountOpen(false)}
-                    className="block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"
-                  >
-                    Logout
-                  </Link>
+                      <Link
+                        to="/logout"
+                        onClick={() => setAccountOpen(false)}
+                        className="block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"
+                      >
+                        Logout
+                      </Link>
+                    </>
+                  )}
                 </div>
               )}
             </div>
